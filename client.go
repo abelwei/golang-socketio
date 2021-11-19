@@ -1,8 +1,11 @@
 package gosocketio
 
 import (
+	"fmt"
 	"github.com/abelwei/golang-socketio/transport"
+	"net/url"
 	"strconv"
+	"strings"
 )
 
 const (
@@ -22,14 +25,30 @@ type Client struct {
 /**
 Get ws/wss url by host and port
 */
-func GetUrl(host string, port int, secure bool) string {
+func GetUrl(host string, port int,  params []string, secure bool) string {
 	var prefix string
 	if secure {
 		prefix = webSocketSecureProtocol
 	} else {
 		prefix = webSocketProtocol
 	}
-	return prefix + host + ":" + strconv.Itoa(port) + socketioUrl
+	_url, err := url.Parse(prefix + host + ":" + strconv.Itoa(port) + socketioUrl)
+	if err != nil {
+		fmt.Println("We unable to parse given url: ", _url)
+	}
+
+	if len(params) > 0 {
+		_uval := _url.Query()
+		for _, element := range params {
+			s := strings.Split(element, "=")
+			_uval.Add(s[0], s[1])
+		}
+		_url.RawQuery = _uval.Encode()
+	}
+
+
+	//return prefix + host + ":" + strconv.Itoa(port) + socketioUrl
+	return _url.String()
 }
 
 /**
